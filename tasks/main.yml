@@ -1,0 +1,50 @@
+---
+# tasks file for mongodb
+- name: Update yum packages.
+  yum: name=* state=latest
+
+- name: Install additional software packages.
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - wget
+    - vim
+    - net-tools
+    - yum-utils
+
+- name: Copy the MongoDB repo file.
+  copy:
+    src: files/mongodb-org-{{ mongodb_version }}.repo
+    dest: /etc/yum.repos.d/mongodb-org-{{ mongodb_version }}.repo
+
+- name: Install the MongoDB package.
+  yum:
+    name: mongodb-org
+    state: present
+
+- name: Stop unintended upgrade of packages.
+  copy:
+    src: files/yum.conf
+    dest: /etc/yum.conf
+
+- name: Push SELinux conf file to an instance.
+  copy:
+    src: files/config
+    dest: /etc/selinux/config
+
+- name: Fetch the init system value from machine.
+  command: ps --no-headers -o comm 1
+  changed_when: false
+  register: init_system
+- debug:
+    msg: "{{ init_system }}"
+
+- name: Start the mongodb instance on machine.
+  service:
+    name: mongod
+    state: started
+    enabled: yes
+  register: mongodb_status
+- debug:
+    msg: "{{ mongodb_status }}"

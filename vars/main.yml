@@ -1,0 +1,3 @@
+---
+# vars file for mongodb
+mongodb_version: "5.0"
